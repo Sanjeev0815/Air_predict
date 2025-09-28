@@ -1,16 +1,16 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
+import matplotlib.pyplot as plt # Replaced Plotly imports with Matplotlib
 from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings('ignore')
 
+# Assuming these classes and utilities are correctly defined in your files
 from data_handler import DataHandler
 from preprocessor import DataPreprocessor
 from models import PollutantForecaster
-from visualizer import Visualizer
+from visualizer import Visualizer 
 from utils import load_css, calculate_metrics, check_safety_thresholds, export_predictions_to_csv, export_predictions_to_json, export_summary_report
 
 # Page configuration
@@ -147,8 +147,11 @@ def data_upload_page(data_handler, visualizer):
         # Basic visualizations
         if all(col in data.columns for col in ['o3', 'no2']):
             st.subheader("Pollutant Concentration Overview")
+            
+            # --- Matplotlib Integration Point 1 ---
             fig = visualizer.plot_pollutant_overview(data)
-            st.plotly_chart(fig, use_container_width=True)
+            st.pyplot(fig) 
+            plt.close(fig) # Close the Matplotlib figure to free memory
 
 def preprocessing_page(preprocessor, visualizer):
     st.header("🔧 Data Preprocessing")
@@ -180,7 +183,7 @@ def preprocessing_page(preprocessor, visualizer):
         
         st.subheader("Advanced Features")
         advanced_features = st.checkbox("Enable advanced domain-specific features", value=True, 
-                                       help="Includes interaction terms, atmospheric stability indicators, and photochemical potential")
+                                        help="Includes interaction terms, atmospheric stability indicators, and photochemical potential")
         
         if advanced_features:
             st.info("🧠 Advanced features include: heat index, wind chill, photochemical potential, atmospheric stability, pollutant ratios, and enhanced temporal encoding")
@@ -240,14 +243,17 @@ def preprocessing_page(preprocessor, visualizer):
                 feature_df = pd.DataFrame({
                     'Feature': processed_data['feature_names'],
                     'Type': ['Original' if not any(x in feat for x in ['lag', 'rolling']) 
-                            else 'Engineered' for feat in processed_data['feature_names']]
+                             else 'Engineered' for feat in processed_data['feature_names']]
                 })
                 st.dataframe(feature_df, width='stretch')
                 
                 # Visualize processed data
                 st.subheader("Processed Data Visualization")
+                
+                # --- Matplotlib Integration Point 2 ---
                 fig = visualizer.plot_processed_data(processed_data)
-                st.plotly_chart(fig, use_container_width=True)
+                st.pyplot(fig)
+                plt.close(fig) # Close the Matplotlib figure to free memory
                 
             except Exception as e:
                 st.error(f"❌ Error during preprocessing: {str(e)}")
@@ -353,9 +359,11 @@ def model_training_page(forecaster, visualizer):
                     
                     # Training history plot
                     if target in training_history:
+                        # --- Matplotlib Integration Point 3 ---
                         fig = visualizer.plot_training_history(training_history[target], target)
-                        st.plotly_chart(fig, use_container_width=True)
-                    
+                        st.pyplot(fig)
+                        plt.close(fig) # Close the Matplotlib figure to free memory
+                        
                     # Model comparison
                     target_data = forecaster.prepare_target_data(processed_data, target)
                     model_comparison = forecaster.evaluate_models(models[target], target_data)
@@ -455,20 +463,22 @@ def display_forecast_results(predictions, baseline_predictions, targets, process
     # Safety thresholds (WHO guidelines)
     safety_thresholds = {
         'o3': 100,  # µg/m³
-        'no2': 40   # µg/m³
+        'no2': 40    # µg/m³
     }
     
     for target in targets:
         st.subheader(f"{target.upper()} Forecast")
         
         # Create forecast visualization
+        # --- Matplotlib Integration Point 4 ---
         fig = visualizer.plot_forecast_results(
             predictions[target], 
             target,
             baseline_predictions[target] if baseline_predictions else None,
             safety_thresholds.get(target, None)
         )
-        st.plotly_chart(fig, width='stretch')
+        st.pyplot(fig)
+        plt.close(fig) # Close the Matplotlib figure to free memory
         
         # Model evaluation metrics
         col1, col2, col3 = st.columns(3)
@@ -564,3 +574,7 @@ def display_forecast_results(predictions, baseline_predictions, targets, process
 
 if __name__ == "__main__":
     main()
+
+
+
+    
